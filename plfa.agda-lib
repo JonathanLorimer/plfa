@@ -1,0 +1,5 @@
+name: plfa
+include:
+  src
+depend:
+  standard-library
