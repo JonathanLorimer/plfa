@@ -251,72 +251,75 @@ infixl 7 _*_
   m ^ 2
   ∎
 
--- _^_ : ℕ -> ℕ -> ℕ
--- m ^ zero  = 1
--- m ^ (succ n) = m * (m ^ n)
-
 ^distrib+ : {m n p : ℕ } -> m ^ (n + p) ≡ (m ^ n) * (m ^ p)
-^distrib+ {zero} {zero} {p} = refl
-^distrib+ {zero} {succ n} {p} = refl
-^distrib+ {succ m} {zero} {p} = refl
-^distrib+ {succ m} {succ n} {zero} =
+^distrib+ {m} {zero} {p} = refl
+^distrib+ {m} {succ n} {p} =
   begin
-  succ m ^ (succ n + zero)
+  m ^ (succ n + p)
   ≡⟨⟩
-  succ m ^ succ n
-  ≡⟨ sym (*one {n = succ m ^ succ n}) ⟩
-  (succ m ^ succ n) * 1
-  ≡⟨⟩
-  (succ m ^ succ n) * (succ m ^ zero)
-  ∎
-^distrib+ {succ m} {succ n} {succ p} =
-  begin
-  succ m ^ (succ n + succ p)
-  ≡⟨ ? ⟩
-  (succ m ^ (n + (2 + p)))
-  ≡⟨ ^distrib+ {m = succ m} {n = n} {p = 2 + p} ⟩
-  (succ m ^ n) * (succ m ^ (2 + p))
-  ≡⟨ cong (succ m ^ n *_) (^distrib+ {m = succ m} {n = 2} {p = p}) ⟩
-  (succ m ^ n) * ((succ m ^ 2) * (succ m ^ p))
-  ≡⟨ ? ⟩
-  (succ m ^ n) * ((succ m ^ p) * (succ m ^ 2))
-  ≡⟨ sym (*assoc {a = succ m ^ n} {b = succ m ^ p} {c = succ m ^ 2}) ⟩
-  (succ m ^ n) * (succ m ^ p) * (succ m ^ 2)
-  ≡⟨ cong (_* (succ m ^ 2)) (sym (^distrib+ {m = succ m} {n = n} {p = p})) ⟩
-  (succ m ^ (n + p)) * (succ m ^ 2)
-  ≡⟨ cong (succ m ^ (n + p) *_) (sym (^squared {m = succ m})) ⟩
-  (succ m ^ (n + p)) * (succ m * succ m)
-  ≡⟨ cong (_* (succ m * succ m)) (^distrib+ {m = succ m} {n = n} {p = p}) ⟩
-  ((succ m ^ n) * (succ m ^ p)) * (succ m * succ m)
-  ≡⟨ *assoc {a = succ m ^ n} {b = succ m ^ p} {c = succ m * succ m} ⟩
-  (succ m ^ n) * ((succ m ^ p) * (succ m * succ m))
-  ≡⟨ cong ((succ m ^ n) *_) (sym (*assoc {a = succ m ^ p} {b = succ m} {c = succ m})) ⟩
-  (succ m ^ n) * (((succ m ^ p) * succ m) * succ m)
-  ≡⟨ cong ((succ m ^ n) *_) (cong (_* succ m) (*comm {x = succ m ^ p} {y = succ m})) ⟩
-  (succ m ^ n) * ((succ m * (succ m ^ p)) * succ m)
-  ≡⟨ cong ((succ m ^ n) *_) (*assoc {a = succ m} {b = succ m ^ p} {c = succ m}) ⟩
-  (succ m ^ n) * (succ m * ((succ m ^ p) * succ m))
-  ≡⟨ cong ((succ m ^ n) *_) (cong (succ m *_) (sym (*comm {x = succ m} {y = succ m ^ p}))) ⟩
-  (succ m ^ n) * (succ m * (succ m * (succ m ^ p)))
-  ≡⟨ sym (*assoc {a = succ m ^ n} {b = succ m} {c = (succ m * (succ m ^ p))}) ⟩
-  ((succ m ^ n) * succ m) * (succ m * (succ m ^ p))
-  ≡⟨ cong (((succ m ^ n) * succ m) *_) (cong (_* (succ m ^ p)) (sym (^one {n = succ m}))) ⟩
-  ((succ m ^ n) * succ m) * ((succ m ^ 1) * (succ m ^ p))
-  ≡⟨ cong (((succ m ^ n) * succ m) *_) (sym (^distrib+ {m = succ m} {n = 1} {p = p})) ⟩
-  ((succ m ^ n) * succ m) * (succ m ^ (1 + p))
-  ≡⟨ cong (_* succ m ^ (1 + p)) (cong ((succ m ^ n) *_) (sym (^one {n = succ m}))) ⟩
-  ((succ m ^ n) * (succ m ^ 1)) * (succ m ^ (1 + p))
-  ≡⟨ cong (_* (succ m ^ (1 + p))) (sym (^distrib+ {m = succ m} {n = n} {p = 1})) ⟩
-  (succ m ^ (n + 1)) * (succ m ^ (1 + p))
-  ≡⟨⟩
-  (succ m ^ succ n) * (succ m ^ succ p)
+  m * m ^ (n + p)
+  ≡⟨ cong (m *_) (^distrib+ {m = m} {n = n} {p = p}) ⟩
+  m * ((m ^ n) * (m ^ p))
+  ≡⟨ sym (*assoc {a = m} {b = m ^ n} {c = m ^ p}) ⟩
+  m * (m ^ n) * (m ^ p)
+  ≡⟨ cong (_* (m ^ p)) (cong (_* (m ^ n)) (sym (^one {n = m}))) ⟩
+  (m ^ 1) * (m ^ n) * (m ^ p)
+  ≡⟨ cong (_* m ^ p) (*comm {x = m ^ 1} {y = m ^ n}) ⟩
+  (m ^ n) * (m ^ 1) * (m ^ p)
+  ≡⟨ cong (_* m ^ p) (sym (^distrib+ {m = m} {n = n} {p = 1})) ⟩
+  (m ^ succ n) * (m ^ p)
   ∎
 
 ^distrib* : {m n p : ℕ } ->  (m * n) ^ p ≡ (m ^ p) * (n ^ p)
-^distrib* = ?
+^distrib* {m} {n} {zero} = refl
+^distrib* {m} {n} {succ p} =
+  begin
+  (m * n) ^ (succ p)
+  ≡⟨⟩
+  (m * n) * ((m * n) ^ p)
+  ≡⟨ cong (m * n *_) (^distrib* {m = m} {n = n} {p = p}) ⟩
+  (m * n) * ((m ^ p) * (n ^ p))
+  ≡⟨ sym (*assoc {a = m * n} {b = m ^ p} {c = n ^ p}) ⟩
+  ((m * n) * (m ^ p)) * (n ^ p)
+  ≡⟨ cong (_* (n ^ p)) (cong (_* (m ^ p)) (*comm {x = m} {y = n})) ⟩
+  ((n * m) * (m ^ p)) * (n ^ p)
+  ≡⟨ cong (_* (n ^ p)) (*assoc {a = n} {b = m} {c = m ^ p}) ⟩
+  (n * (m * (m ^ p))) * (n ^ p)
+  ≡⟨⟩
+  (n * (m ^ succ p)) * (n ^ p)
+  ≡⟨ cong (_* (n ^ p)) (*comm {x = n} {y = m ^ succ p}) ⟩
+  ((m ^ succ p) * n) * (n ^ p)
+  ≡⟨ *assoc {a = m ^ succ p} {b = n} {c = n ^ p} ⟩
+  (m ^ succ p) * (n * (n ^ p))
+  ≡⟨⟩
+  (m ^ succ p) * (n ^ succ p)
+  ∎
 
 ^assoc : {m n p : ℕ } -> (m ^ n) ^ p ≡ m ^ (n * p)
-^assoc = ?
+^assoc {m} {n} {zero} =
+  begin
+  (m ^ n) ^ zero
+  ≡⟨ cong (m ^_) (sym (*zeror { n = n })) ⟩
+  m ^ (n * zero)
+  ∎
+^assoc {m} {n} {succ p} =
+  begin
+  (m ^ n) ^ (succ p)
+  ≡⟨ ^distrib+ {m = m ^ n} {n = 1} {p = p} ⟩
+  ((m ^ n) ^ 1) * ((m ^ n) ^ p)
+  ≡⟨ cong (_* ((m ^ n) ^ p)) (^one {n = m ^ n}) ⟩
+  (m ^ n) * ((m ^ n) ^ p)
+  ≡⟨ cong (m ^ n *_) (^assoc {m = m} {n = n} {p = p}) ⟩
+  (m ^ n) * (m ^ (n * p))
+  ≡⟨ sym (^distrib+ {m = m} {n = n} {p = n * p}) ⟩
+  m ^ (n + (n * p))
+  ≡⟨ cong (m ^_) (cong (n +_) (*comm {x = n} {y = p})) ⟩
+  m ^ (n + (p * n))
+  ≡⟨⟩
+  m ^ ((succ p) * n)
+  ≡⟨ cong (m ^_) (*comm {x = succ p} {y = n}) ⟩
+  m ^ (n * succ p)
+  ∎
 
 data Bin : Set where
   ⟨⟩ : Bin
@@ -328,17 +331,167 @@ inc ⟨⟩ = (⟨⟩ I)
 inc (x O) = x I
 inc (x I) = (inc x) O
 
+inc-proof-0 : inc (⟨⟩ O) ≡ ⟨⟩ I
+inc-proof-0 = refl
+
+inc-proof-1 : inc (⟨⟩ I) ≡ ⟨⟩ I O
+inc-proof-1 = refl
+
+inc-proof-2 : inc (⟨⟩ I O) ≡ ⟨⟩ I I
+inc-proof-2 = refl
+
+inc-proof-3 : inc (⟨⟩ I I) ≡ ⟨⟩ I O O
+inc-proof-3 = refl
+
+inc-proof-4 : inc (⟨⟩ I O O) ≡ ⟨⟩ I O I
+inc-proof-4 = refl
+
+inc-proof-11 : inc (⟨⟩ I O I I) ≡ ⟨⟩ I I O O
+inc-proof-11 = refl
+
 to : ℕ -> Bin
-to = go ⟨⟩
-  where
-    go : Bin -> ℕ -> Bin
-    go b zero = b
-    go b (succ n) = go (inc b) n
+to zero = ⟨⟩ O
+to (succ n) = inc (to n)
+
+to-proof-0 : to 0 ≡ ⟨⟩ O
+to-proof-0 = refl
+
+to-proof-1 : to 1 ≡ ⟨⟩ I
+to-proof-1 = refl
+
+to-proof-2 : to 2 ≡ ⟨⟩ I O
+to-proof-2 = refl
+
+to-proof-3 : to 3 ≡ ⟨⟩ I I
+to-proof-3 = refl
+
+to-proof-4 : to 4 ≡ ⟨⟩ I O O
+to-proof-4 = refl
+
+to-proof-11 : to 11 ≡ ⟨⟩ I O I I
+to-proof-11 = refl
+
+from' : ℕ -> Bin -> ℕ
+from' _ ⟨⟩ = zero
+from' exponent (x I) = 2 ^ exponent + (from' (exponent + 1)  x)
+from' exponent (x O) = from' (exponent + 1) x
 
 from : Bin -> ℕ
-from = go zero
-  where
-    go : ℕ -> Bin -> ℕ
-    go _ ⟨⟩ = zero
-    go exponent (x I) = 2 ^ exponent + (go (exponent + 1)  x)
-    go exponent (x O) = go (exponent + 1) x
+from = from' zero
+
+from-proof-0 : from (⟨⟩ O) ≡ 0
+from-proof-0 = refl
+
+from-proof-1 : from (⟨⟩ I) ≡ 1
+from-proof-1 = refl
+
+from-proof-2 : from (⟨⟩ I O) ≡ 2
+from-proof-2 = refl
+
+from-proof-3 : from (⟨⟩ I I) ≡ 3
+from-proof-3 = refl
+
+from-proof-4 : from (⟨⟩ I O O) ≡ 4
+from-proof-4 = refl
+
+from-proof-11 : from (⟨⟩ I O I I) ≡ 11
+from-proof-11 = refl
+
+inc-≡-succ-general : (e : ℕ) → (b : Bin) → from' e (inc b) ≡ 2 ^ e + from' e b
+inc-≡-succ-general zero ⟨⟩ = refl
+inc-≡-succ-general zero (b O) = refl
+inc-≡-succ-general zero (b I) =
+  begin
+  from' zero (inc (b I))
+  ≡⟨⟩
+  from' zero ((inc b) O)
+  ≡⟨⟩
+  from' 1 (inc b)
+  ≡⟨ inc-≡-succ-general 1 b ⟩
+  2 ^ 1 + from' 1 b
+  ≡⟨⟩
+  1 + from' zero (b I)
+  ≡⟨⟩
+  (2 ^ zero) + from' zero (b I)
+  ∎
+inc-≡-succ-general (succ e) ⟨⟩ = refl
+inc-≡-succ-general (succ e) (b O) = refl
+inc-≡-succ-general (succ e) (b I) =
+  begin
+  from' (succ e) (inc (b I))
+  ≡⟨⟩
+  from' (succ e) ((inc b) O)
+  ≡⟨⟩
+  from' (succ (succ e)) (inc b)
+  ≡⟨ inc-≡-succ-general (succ (succ e)) b ⟩
+  2 ^ (succ (succ e)) + from' (succ (succ e)) b
+  ≡⟨⟩
+  (2 * (2 ^ e)) + (2 * (2 ^ e)) + (from' (succ (succ e)) b)
+  ≡⟨ +assoc {a = 2 * (2 ^ e)} {b = 2 * (2 ^ e)} {c = from' (succ (succ e)) b} ⟩
+  2 * (2 ^ e) + (2 * (2 ^ e) + (from' (succ (succ e)) b))
+  ≡⟨ cong (2 * (2 ^ e) +_) (+comm {x = 2 * (2 ^ e)} {y = (from' (succ (succ e)) b)}) ⟩
+  2 * (2 ^ e) + ((from' (succ (succ e)) b) + (2 * (2 ^ e)))
+  ≡⟨ sym (cong (_+ ((from' (succ (succ e)) b) + (2 * (2 ^ e)))) (^distrib+ {m = 2} {n = 1} {p = e}))⟩
+  (2 ^ (1 + e)) + ((from' (succ (succ e)) b) + (2 * (2 ^ e)))
+  ≡⟨⟩
+  (2 ^ (succ e)) + ((from' (succ (succ e)) b) + (2 * (2 ^ e)))
+  ≡⟨ sym (+assoc {a = 2 ^ (succ e)} {b = (from' (succ (succ e)) b)} {c = (2 * (2 ^ e))} )⟩
+  ((2 ^ (succ e)) + (from' (succ (succ e)) b)) + (2 * (2 ^ e))
+  ≡⟨ +comm {x = ((2 ^ (succ e)) + (from' (succ (succ e)) b))} {y = 2 * (2 ^ e)} ⟩
+  2 * (2 ^ e) + ((2 ^ (succ e)) + (from' (succ (succ e)) b))
+  ≡⟨⟩
+  (2 ^ 1) * (2 ^ e) + ((2 ^ (succ e)) + (from' (succ (succ e)) b))
+  ≡⟨ sym (cong (_+ ((2 ^ (1 + e)) + (from' (succ (succ e)) b))) (^distrib+ {m = 2} {n = 1} {p = e}))⟩
+  (2 ^ (1 + e)) + ((2 ^ (1 + e)) + (from' (succ (succ e)) b))
+  ≡⟨⟩
+  (2 ^ (succ e)) + from' (succ e) (b I)
+  ∎
+
+inc-≡-succ : { b : Bin } -> from (inc b) ≡ succ (from b)
+inc-≡-succ {⟨⟩} = refl
+inc-≡-succ {b O} = refl
+inc-≡-succ {b I} = inc-≡-succ-general zero (b I)
+
+concat-bins : Bin -> Bin -> Bin
+concat-bins b ⟨⟩ = b
+concat-bins b (x O) = (concat-bins b x) O
+concat-bins b (x I) = (concat-bins b x) I
+
+norm-bin' : Bin -> Bin -> Bin
+norm-bin' _ ⟨⟩ = ⟨⟩
+norm-bin' _ (⟨⟩ O) = ⟨⟩
+norm-bin' acc (⟨⟩ I) = concat-bins (⟨⟩ I) acc
+norm-bin' acc (b O) = norm-bin' (acc O) b
+norm-bin' acc (b I) = concat-bins ((norm-bin' ⟨⟩ b) I) acc
+
+norm-bin : Bin -> Bin
+norm-bin = norm-bin' ⟨⟩
+
+_ : norm-bin (⟨⟩ O) ≡ ⟨⟩
+_ = refl
+
+_ : norm-bin (⟨⟩ O O) ≡ ⟨⟩
+_ = refl
+
+_ : norm-bin (⟨⟩ O I) ≡ ⟨⟩ I
+_ = refl
+
+_ : norm-bin (⟨⟩ O I O) ≡ ⟨⟩ I O
+_ = refl
+
+bin-norm-≡ : (nat : ℕ) -> (acc : Bin) -> (b : Bin) -> from' nat (norm-bin' acc b) ≡ from' nat b
+bin-norm-≡ n acc ⟨⟩ = refl
+bin-norm-≡ n acc (b O) =
+  begin
+  from' n (norm-bin' acc (b O))
+  ≡⟨ ? ⟩
+  from' n (norm-bin' (acc O) b)
+  ≡⟨ ? ⟩
+  from' n (b O)
+  ∎
+bin-norm-≡ n b (b' I) = ?
+
+bin-roundtrip : (bin : Bin) -> to (from bin) ≡ bin
+bin-roundtrip ⟨⟩ = ?
+bin-roundtrip (bin O) = ?
+bin-roundtrip (bin I) = ?
