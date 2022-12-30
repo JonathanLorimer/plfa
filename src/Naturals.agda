@@ -350,26 +350,26 @@ inc-proof-11 : inc (⟨⟩ I O I I) ≡ ⟨⟩ I I O O
 inc-proof-11 = refl
 
 to : ℕ -> Bin
-to zero = ⟨⟩ O
+to zero = ⟨⟩
 to (succ n) = inc (to n)
 
-to-proof-0 : to 0 ≡ ⟨⟩ O
-to-proof-0 = refl
-
-to-proof-1 : to 1 ≡ ⟨⟩ I
-to-proof-1 = refl
-
-to-proof-2 : to 2 ≡ ⟨⟩ I O
-to-proof-2 = refl
-
-to-proof-3 : to 3 ≡ ⟨⟩ I I
-to-proof-3 = refl
-
-to-proof-4 : to 4 ≡ ⟨⟩ I O O
-to-proof-4 = refl
-
-to-proof-11 : to 11 ≡ ⟨⟩ I O I I
-to-proof-11 = refl
+-- to-proof-0 : to 0 ≡ ⟨⟩ O
+-- to-proof-0 = refl
+--
+-- to-proof-1 : to 1 ≡ ⟨⟩ I
+-- to-proof-1 = refl
+--
+-- to-proof-2 : to 2 ≡ ⟨⟩ I O
+-- to-proof-2 = refl
+--
+-- to-proof-3 : to 3 ≡ ⟨⟩ I I
+-- to-proof-3 = refl
+--
+-- to-proof-4 : to 4 ≡ ⟨⟩ I O O
+-- to-proof-4 = refl
+--
+-- to-proof-11 : to 11 ≡ ⟨⟩ I O I I
+-- to-proof-11 = refl
 
 from' : ℕ -> Bin -> ℕ
 from' _ ⟨⟩ = zero
@@ -479,19 +479,46 @@ _ = refl
 _ : norm-bin (⟨⟩ O I O) ≡ ⟨⟩ I O
 _ = refl
 
-bin-norm-≡ : (nat : ℕ) -> (acc : Bin) -> (b : Bin) -> from' nat (norm-bin' acc b) ≡ from' nat b
-bin-norm-≡ n acc ⟨⟩ = refl
-bin-norm-≡ n acc (b O) =
-  begin
-  from' n (norm-bin' acc (b O))
-  ≡⟨ ? ⟩
-  from' n (norm-bin' (acc O) b)
-  ≡⟨ ? ⟩
-  from' n (b O)
-  ∎
-bin-norm-≡ n b (b' I) = ?
+open import Data.Empty
 
-bin-roundtrip : (bin : Bin) -> to (from bin) ≡ bin
-bin-roundtrip ⟨⟩ = ?
-bin-roundtrip (bin O) = ?
-bin-roundtrip (bin I) = ?
+bin-norm-≡-counter : ((bin : Bin) -> to (from bin) ≡ bin) → ⊥
+bin-norm-≡-counter prop with prop (⟨⟩ O O)
+... | ()
+
+
+bin-norm-≡ : ( bin : Bin ) → norm-bin bin ≡ bin → to (from bin) ≡ bin
+bin-norm-≡ ⟨⟩ norm = refl
+  -- begin
+  -- to (from ⟨⟩)
+  -- ≡⟨ ? ⟩
+  -- ⟨⟩
+  -- ∎
+bin-norm-≡ (b O) norm =
+  begin
+  to (from (b O))
+  ≡⟨⟩
+  to (from' 1 (b O))
+  ≡⟨ ? ⟩
+  ?
+  ≡⟨⟩
+  b O
+  ∎
+bin-norm-≡ (b I) norm = {! !}
+
+
+-- bin-norm-≡ : (nat : ℕ) -> (acc : Bin) -> (b : Bin) -> from' nat (norm-bin' acc b) ≡ from' nat b
+-- bin-norm-≡ n acc ⟨⟩ = refl
+-- bin-norm-≡ n acc (b O) =
+--   begin
+--   from' n (norm-bin' acc (b O))
+--   ≡⟨ ? ⟩
+--   from' n (norm-bin' (acc O) b)
+--   ≡⟨ ? ⟩
+--   from' n (b O)
+--   ∎
+-- bin-norm-≡ n b (b' I) = ?
+--
+-- bin-roundtrip : (bin : Bin) -> to (from bin) ≡ bin
+-- bin-roundtrip ⟨⟩ = ?
+-- bin-roundtrip (bin O) = ?
+-- bin-roundtrip (bin I) = ?
