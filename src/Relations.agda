@@ -17,8 +17,3 @@ inv-s≤s (s≤s m≤n) = m≤n
 inv-z≤n : ∀ {m : ℕ} → m ≤ zero -> m ≡ zero
 inv-z≤n z≤n = refl
 
-reflexive : ∀ {A : Set} →
-  {rel : A → A → Set} →
-  { a : A } →
-  rel a a
-reflexive rel = ?
