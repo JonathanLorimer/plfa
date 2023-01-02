@@ -320,4 +320,3 @@ infixl 7 _*_
   ≡⟨ cong (m ^_) (*comm {x = succ p} {y = n}) ⟩
   m ^ (n * succ p)
   ∎
-
