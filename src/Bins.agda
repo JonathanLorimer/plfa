@@ -34,10 +34,10 @@ inc-proof-11 : inc (⟨⟩ I O I I) ≡ ⟨⟩ I I O O
 inc-proof-11 = refl
 
 to : ℕ -> Bin
-to zero = ⟨⟩
+to zero = ⟨⟩ O
 to (succ n) = inc (to n)
 
-_ : to 0 ≡ ⟨⟩
+_ : to 0 ≡ ⟨⟩ O
 _ = refl
 
 _ : to 1 ≡ ⟨⟩ I
@@ -189,59 +189,59 @@ _ = refl
 <>-bin-dist-⊥ prop with prop (⟨⟩ I) (⟨⟩ O)
 ... | ()
 
-idemp-norm-bin-lemma : (b : Bin) → (b' : Bin) → norm-bin (<>-bin (b I) b') ≡ <>-bin (norm-bin b I) b'
-idemp-norm-bin-lemma b ⟨⟩ = refl
-idemp-norm-bin-lemma b (b' O) =
-  begin
-  norm-bin (<>-bin (b I) (b' O))
-  ≡⟨⟩
-  norm-bin' ⟨⟩ (<>-bin (b I) (b' O))
-  ≡⟨⟩
--- NOTE: Stuck, need to prove to agda that we can re-associate concatenation under normalization if the left hand
--- binary is non-zero (i.e. has an I somewhere)
-  norm-bin ((<>-bin (b I) b') O)
-  ≡⟨ ? ⟩
-  (<>-bin (norm-bin b I) b') O
-  ≡⟨⟩
-  <>-bin (norm-bin b I) (b' O)
-  ∎
-idemp-norm-bin-lemma b (b' I) =
-  begin
-  norm-bin' ⟨⟩ (<>-bin (b I) b') I
-  ≡⟨ cong (_I) (idemp-norm-bin-lemma b b') ⟩
-  <>-bin (norm-bin b I) b' I
-  ∎
+-- idemp-norm-bin-lemma : (b : Bin) → (b' : Bin) → norm-bin (<>-bin (b I) b') ≡ <>-bin (norm-bin b I) b'
+-- idemp-norm-bin-lemma b ⟨⟩ = refl
+-- idemp-norm-bin-lemma b (b' O) =
+--   begin
+--   norm-bin (<>-bin (b I) (b' O))
+--   ≡⟨⟩
+--   norm-bin' ⟨⟩ (<>-bin (b I) (b' O))
+--   ≡⟨⟩
+-- -- NOTE: Stuck, need to prove to agda that we can re-associate concatenation under normalization if the left hand
+-- -- binary is non-zero (i.e. has an I somewhere)
+--   norm-bin ((<>-bin (b I) b') O)
+--   ≡⟨ ? ⟩
+--   (<>-bin (norm-bin b I) b') O
+--   ≡⟨⟩
+--   <>-bin (norm-bin b I) (b' O)
+--   ∎
+-- idemp-norm-bin-lemma b (b' I) =
+--   begin
+--   norm-bin' ⟨⟩ (<>-bin (b I) b') I
+--   ≡⟨ cong (_I) (idemp-norm-bin-lemma b b') ⟩
+--   <>-bin (norm-bin b I) b' I
+--   ∎
 
-idemp-norm-bin
-  : (acc : Bin) → (b : Bin)
-  → norm-bin (norm-bin' acc b) ≡ norm-bin' acc b
-idemp-norm-bin a ⟨⟩ = refl
-idemp-norm-bin a (bin O) =
-  begin
-  norm-bin' ⟨⟩ (norm-bin' (a O) bin)
-  ≡⟨ idemp-norm-bin (a O) bin ⟩
-  norm-bin' (a O) bin
-  ∎
-idemp-norm-bin ⟨⟩ (bin I) =
-  begin
-  norm-bin' ⟨⟩ (norm-bin' ⟨⟩ bin) I
-  ≡⟨ cong (_I) (idemp-norm-bin ⟨⟩ bin) ⟩
-  (norm-bin' ⟨⟩ bin) I
-  ∎
-idemp-norm-bin (a O) (bin I) =
-  begin
-  norm-bin' (⟨⟩ O) (<>-bin (norm-bin' ⟨⟩ bin I) a)
-  ≡⟨ ? ⟩
-  <>-bin (norm-bin' ⟨⟩ bin I) a O
-  ∎
-idemp-norm-bin (a I) (bin I) =
-  begin
-  norm-bin' ⟨⟩ (<>-bin ((norm-bin' ⟨⟩ bin) I) a) I
-  ≡⟨ ? ⟩
-  (<>-bin (norm-bin' ⟨⟩ bin I) a) I
-  ∎
-
-bin-to-from : (n : ℕ) → ( bin : Bin ) → norm-bin bin ≡ bin → to (from' n bin) ≡ bin
-bin-to-from n ⟨⟩ norm = refl
-bin-to-from n (b O) norm = ?
-bin-to-from n (b I) norm = ?
+-- idemp-norm-bin
+--   : (acc : Bin) → (b : Bin)
+--   → norm-bin (norm-bin' acc b) ≡ norm-bin' acc b
+-- idemp-norm-bin a ⟨⟩ = refl
+-- idemp-norm-bin a (bin O) =
+--   begin
+--   norm-bin' ⟨⟩ (norm-bin' (a O) bin)
+--   ≡⟨ idemp-norm-bin (a O) bin ⟩
+--   norm-bin' (a O) bin
+--   ∎
+-- idemp-norm-bin ⟨⟩ (bin I) =
+--   begin
+--   norm-bin' ⟨⟩ (norm-bin' ⟨⟩ bin) I
+--   ≡⟨ cong (_I) (idemp-norm-bin ⟨⟩ bin) ⟩
+--   (norm-bin' ⟨⟩ bin) I
+--   ∎
+-- idemp-norm-bin (a O) (bin I) =
+--   begin
+--   norm-bin' (⟨⟩ O) (<>-bin (norm-bin' ⟨⟩ bin I) a)
+--   ≡⟨ ? ⟩
+--   <>-bin (norm-bin' ⟨⟩ bin I) a O
+--   ∎
+-- idemp-norm-bin (a I) (bin I) =
+--   begin
+--   norm-bin' ⟨⟩ (<>-bin ((norm-bin' ⟨⟩ bin) I) a) I
+--   ≡⟨ ? ⟩
+--   (<>-bin (norm-bin' ⟨⟩ bin I) a) I
+--   ∎
+--
+-- bin-to-from : (n : ℕ) → ( bin : Bin ) → norm-bin bin ≡ bin → to (from' n bin) ≡ bin
+-- bin-to-from n ⟨⟩ norm = refl
+-- bin-to-from n (b O) norm = ?
+-- bin-to-from n (b I) norm = ?
