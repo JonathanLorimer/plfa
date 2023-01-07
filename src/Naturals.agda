@@ -98,6 +98,9 @@ infixl 7 _*_
 +comm {zero} = refl
 +comm {succ x} {y} = cong succ (+comm {x = x} {y = y})
 
++zeroʳ : (n : ℕ) -> zero + n ≡ n
++zeroʳ n rewrite +comm {x = n} {y = zero} = +zero
+
 +assoc : { a b c : ℕ } -> (a + b) + c ≡ a + (b + c)
 +assoc { zero } { b } { c } = refl
 +assoc { succ a } { b } { c } = cong succ (+assoc {a = a} {b = b} {c = c})
@@ -173,6 +176,25 @@ infixl 7 _*_
   ≡⟨⟩
   (succ m) ∸ ((succ n) + (succ p))
   ∎
+
+*succ : ∀ m n → m * succ n ≡ m + m * n
+*succ zero n = refl
+*succ (succ m) n =
+  begin
+  succ m * succ n
+  ≡⟨ cong (succ n +_) (*succ m n) ⟩
+  succ (n + (m + m * n))
+  ≡⟨ cong succ (sym (+assoc {a = n} {b = m} {c = m * n})) ⟩
+  succ (n + m + m * n)
+  ≡⟨ cong (λ x → succ (x + m * n)) (+comm {x = n} {y = m}) ⟩
+  succ (m + n + m * n)
+  ≡⟨ cong succ (+assoc {a = m} {b = n} {c = (m * n)}) ⟩
+  succ (m + succ m * n)
+  ∎
+
++-to-* : (n : ℕ) → n + n ≡ 2 * n
++-to-* n = refl
+
 
 *comm : { x y : ℕ } -> x * y ≡ y * x
 *comm {zero} {y} =
