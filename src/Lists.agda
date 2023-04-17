@@ -9,6 +9,7 @@ open import Data.Nat.Properties using
   (+-assoc; +-identityˡ; +-identityʳ; *-assoc; *-identityˡ; *-identityʳ; *-distribʳ-+)
 open import Relation.Nullary using (¬_; Dec; yes; no)
 open import Data.Product using (_×_; ∃; ∃-syntax) renaming (_,_ to ⟨_,_⟩)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Function using (_∘_)
 open import Level using (Level)
 open import Isomorphism using (_≃_; _⇔_; extensionality)
@@ -200,20 +201,39 @@ foldr-++
   → (xs : List A)
   → (ys : List A)
   → foldr _⊗_ e (xs ++ ys) ≡ foldr _⊗_ (foldr _⊗_ e ys) xs
-foldr-++ = ?
+foldr-++ e _⊗_ [] ys = refl
+foldr-++ e _⊗_ (x ∷ xs) ys =
+  begin
+  x ⊗ foldr _⊗_ e (xs ++ ys)
+  ≡⟨ cong (x ⊗_) (foldr-++ e _⊗_ xs ys) ⟩
+  x ⊗ foldr _⊗_ (foldr _⊗_ e ys) xs
+  ∎
 
 foldr-∷ : ∀ { A : Set } → (xs : List A) → foldr _∷_ [] xs ≡ xs
-foldr-∷ = ?
+foldr-∷ [] = refl
+foldr-∷ (x ∷ xs) =
+  begin
+  x ∷ foldr _∷_ [] xs
+  ≡⟨ cong (x ∷_) (foldr-∷ xs) ⟩
+  x ∷ xs
+  ∎
 
 map-is-foldr
   : ∀ { A B : Set }
   → (f : A → B)
   → (ys : List A)
   → map f ys ≡ foldr (λ x xs → f x ∷ xs) [] ys
-map-is-foldr = ?
+map-is-foldr f [] = refl
+map-is-foldr f (y ∷ ys) =
+  begin
+  f y ∷ map f ys
+  ≡⟨ cong ((f y) ∷_) (map-is-foldr f ys) ⟩
+  f y ∷ foldr (λ x → _∷_ (f x)) [] ys
+  ∎
 
 fold-Tree : ∀ {A B C : Set} → (A → C) → (C → B → C → C) → Tree A B → C
-fold-Tree = ?
+fold-Tree f g (leaf x) = f x
+fold-Tree f g (node l x r) = g (fold-Tree f g l) x (fold-Tree f g r)
 
 map-Tree-is-fold-Tree
   : ∀ { A B C D : Set }
@@ -221,7 +241,15 @@ map-Tree-is-fold-Tree
   → (g : B → D)
   → (tree : Tree A B)
   → map-Tree f g tree ≡ fold-Tree (λ a → leaf (f a)) (λ t₁ b t₂ → node t₁ (g b) t₂) tree
-map-Tree-is-fold-Tree = ?
+map-Tree-is-fold-Tree f g (leaf x) = refl
+map-Tree-is-fold-Tree f g (node l x r) =
+  begin
+  node (map-Tree f g l) (g x) (map-Tree f g r)
+  ≡⟨ cong (λ foldTree → node foldTree (g x) (map-Tree f g r)) (map-Tree-is-fold-Tree f g l) ⟩
+  node (fold-Tree (λ a → leaf (f a)) (λ t₁ b → node t₁ (g b)) l) (g x) (map-Tree f g r)
+  ≡⟨ cong (λ foldTree → node (fold-Tree (λ a → leaf (f a)) (λ t₁ b → node t₁ (g b)) l) (g x) foldTree) (map-Tree-is-fold-Tree f g r) ⟩
+  node (fold-Tree (λ a → leaf (f a)) (λ t₁ b → node t₁ (g b)) l) (g x) (fold-Tree (λ a → leaf (f a)) (λ t₁ b → node t₁ (g b)) r)
+  ∎
 
 record IsMonoid {A : Set} (_⊗_ : A → A → A) (e : A) : Set where
   field
@@ -347,5 +375,56 @@ x ∈ xs = Any (x ≡_) xs
 
 _∉_ : ∀ {A : Set} (x : A) (xs : List A) → Set
 x ∉ xs = ¬ (x ∈ xs)
+
+All-++-⇔ : ∀ {A : Set} {P : A → Set} (xs ys : List A) →
+  All P (xs ++ ys) ⇔ (All P xs × All P ys)
+All-++-⇔ xs ys =
+  record
+    { to       =  to xs ys
+    ; from     =  from xs ys
+    }
+  where
+
+  to : ∀ {A : Set} {P : A → Set} (xs ys : List A) →
+    All P (xs ++ ys) → (All P xs × All P ys)
+  to [] ys allPys = ⟨ [] , allPys ⟩
+  to (x ∷ xs) ys (Px ∷ allP) with to xs ys allP
+  ... | ⟨ Pxs , Pys ⟩ = ⟨ Px ∷ Pxs , Pys ⟩
+
+  from : ∀ { A : Set} {P : A → Set} (xs ys : List A) →
+    All P xs × All P ys → All P (xs ++ ys)
+  from [] ys ⟨ [] , Pys ⟩ = Pys
+  from (x ∷ xs) ys ⟨ Px ∷ Pxs , Pys ⟩ = Px ∷ from xs ys ⟨ Pxs , Pys ⟩
+
+Pxs⇒Pxs++ˡ : ∀ { A : Set } → {P : A → Set} → (xs ys : List A) → Any P xs → Any P (xs ++ ys)
+Pxs⇒Pxs++ˡ .(_ ∷ _) ys (here x) = here x
+Pxs⇒Pxs++ˡ .(_ ∷ _) ys (there p) = there (Pxs⇒Pxs++ˡ _ ys p)
+
+Pxs⇒Pxs++ʳ : ∀ { A : Set } → {P : A → Set} → (xs ys : List A) → Any P ys → Any P (xs ++ ys)
+Pxs⇒Pxs++ʳ [] .(_ ∷ _) (here x) = here x
+Pxs⇒Pxs++ʳ [] .(_ ∷ _) (there x) = there x
+Pxs⇒Pxs++ʳ (x ∷ xs) ys p = there (Pxs⇒Pxs++ʳ xs ys p)
+
+Any-++-⇔ : ∀ {A : Set} {P : A → Set} (xs ys : List A) →
+  Any P (xs ++ ys) ⇔ (Any P xs ⊎ Any P ys)
+Any-++-⇔ xs ys =
+  record
+    { to = to xs ys
+    ; from = from xs ys
+    }
+  where
+    to : ∀ { A : Set } → {P : A → Set} → (xs ys : List A) →
+      Any P (xs ++ ys) → Any P xs ⊎ Any P ys
+    to [] .(_ ∷ _) (here Px) = inj₂ (here Px)
+    to [] .(_ ∷ _) (there Pxs) = inj₂ (there Pxs)
+    to (x ∷ xs) ys (here Px) = inj₁ (here Px)
+    to (x ∷ xs) ys (there Pxs) with to xs ys Pxs
+    ... | inj₁ anyPxs = inj₁ (there anyPxs)
+    ... | inj₂ anyPys = inj₂ anyPys
+
+    from : ∀ { A : Set } → {P : A → Set} → (xs ys : List A) →
+      Any P xs ⊎ Any P ys → Any P (xs ++ ys)
+    from xs ys (inj₁ anyPxs) = Pxs⇒Pxs++ˡ xs ys anyPxs
+    from xs ys (inj₂ anyPys) = Pxs⇒Pxs++ʳ xs ys anyPys
 
 
