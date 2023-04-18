@@ -427,4 +427,84 @@ Any-++-⇔ xs ys =
     from xs ys (inj₁ anyPxs) = Pxs⇒Pxs++ˡ xs ys anyPxs
     from xs ys (inj₂ anyPys) = Pxs⇒Pxs++ʳ xs ys anyPys
 
+¬Any⇔All¬ : ∀ {A : Set} {P : A → Set} (xs : List A) →
+  (¬_ ∘ Any P) xs ⇔ All (¬_ ∘ P) xs
+¬Any⇔All¬ xs =
+  record
+    { to = to xs
+    ; from = from xs
+    }
+    where
+      from : ∀ {A : Set} {P : A → Set} (xs : List A) →
+        All (¬_ ∘ P) xs → (¬_ ∘ Any P) xs
+      from (x ∷ xs) (¬Px ∷ all¬P) (here Px) = ¬Px Px
+      from (x ∷ xs) (¬Px ∷ all¬P) (there ¬AnyP) = (from xs all¬P) ¬AnyP
 
+      to : ∀ {A : Set} {P : A → Set} (xs : List A) →
+        (¬_ ∘ Any P) xs → All (¬_ ∘ P) xs
+      to [] ¬AnyP = []
+      to (x ∷ xs) ¬AnyP = (λ { Px → ¬AnyP (here Px) })
+                        ∷ (to xs λ { anyP → ¬AnyP (there anyP) })
+
+open import Data.Empty using (⊥; ⊥-elim)
+
+
+Any¬⇔¬All : {A : Set} {P : A → Set} → (∀ x → Dec (P x)) → (xs : List A) → (¬_ ∘ All P) xs ⇔ Any (¬_ ∘ P) xs
+Any¬⇔¬All dec xs =
+  record
+    { to = to dec xs
+    ; from = from xs
+    }
+    where
+      to : {A : Set} {P : A → Set} → (∀ x → Dec (P x)) → (xs : List A) → (¬_ ∘ All P) xs → Any (¬_ ∘ P) xs
+      to dec [] x with x []
+      ... | ()
+      to dec (x ∷ xs) ¬AllP with dec x
+      ...| yes Px = there (to dec xs λ { allP → ¬AllP (Px ∷ allP) })
+      ...| no ¬Px = here ¬Px
+
+      from : {A : Set} {P : A → Set} → (xs : List A) → Any (¬_ ∘ P) xs → (¬_ ∘ All P) xs
+      from (x ∷ xs) (here ¬Px) (Px ∷ allP) = ¬Px Px
+      from (x ∷ xs) (there any¬P) (Px ∷ allP) = (from xs any¬P) allP
+
+All-∀ : ∀ {A : Set} {P : A → Set} (xs : List A) → All P xs ≃ (∀ x → x ∈ xs → P x)
+All-∀ { P = P } xs =
+  record
+    { to = to xs
+    ; from = from xs
+    ; from∘to = from∘to xs
+    ; to∘from = λ { y →
+        extensionality
+          (λ { a → extensionality
+            (λ { a∈xs → to∘from xs y a a∈xs
+            })
+          })
+      }
+    }
+    where
+      to : ∀ {A : Set} {P : A → Set} (xs : List A) → All P xs → (x : A) → x ∈ xs → P x
+      to (y ∷ ys) (Px ∷ allP) x (here x≡y) rewrite x≡y = Px
+      to (y ∷ ys) (Px ∷ allP) x (there exists) = to ys allP x exists
+
+      from : ∀ {A : Set} {P : A → Set} (xs : List A) → ((x : A) → x ∈ xs → P x) → All P xs
+      from [] x = []
+      from (a ∷ as) ∈Pa = (∈Pa a (here refl)) ∷ (from as λ { b b∈ → ∈Pa b (there b∈) })
+
+      from∘to : ∀ {A : Set} {P : A → Set} (xs : List A) →
+        (x : All P xs) → from xs (to xs x) ≡ x
+      from∘to [] [] = refl
+      from∘to (x ∷ xs) (Px ∷ allP) =
+        begin
+        to (x ∷ xs) (Px ∷ allP) x (here refl) ∷ from xs (λ { b b∈ → to (x ∷ xs) (Px ∷ allP) b (there b∈) })
+        ≡⟨ cong (_∷ from xs (λ { b b∈ → to (x ∷ xs) (Px ∷ allP) b (there b∈) })) refl ⟩
+        Px ∷ from xs (λ { b b∈ → to (x ∷ xs) (Px ∷ allP) b (there b∈) })
+        ≡⟨ cong (Px ∷_) (from∘to xs allP) ⟩
+        Px ∷ allP
+        ∎
+
+      to∘from
+        : ∀ { A : Set } { P : A → Set }
+        → (xs : List A)
+        → (y : (x : A) → x ∈ xs → P x)
+        → (a : A) → (a∈xs : a ∈ xs) → (to xs (from xs y)) a a∈xs ≡ (y a a∈xs)
+      to∘from = ?
