@@ -8,11 +8,11 @@ open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_; _≤_; s≤s; z≤n
 open import Data.Nat.Properties using
   (+-assoc; +-identityˡ; +-identityʳ; *-assoc; *-identityˡ; *-identityʳ; *-distribʳ-+)
 open import Relation.Nullary using (¬_; Dec; yes; no)
-open import Data.Product using (_×_; ∃; ∃-syntax) renaming (_,_ to ⟨_,_⟩)
+open import Data.Product using (_×_; proj₁; proj₂; ∃; ∃-syntax) renaming (_,_ to ⟨_,_⟩)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Function using (_∘_)
 open import Level using (Level)
-open import Isomorphism using (_≃_; _⇔_; extensionality)
+open import Isomorphism using (_≃_; _⇔_; extensionality; ∀-extensionality)
 
 
 data List (A : Set) : Set where
@@ -474,9 +474,9 @@ All-∀ { P = P } xs =
     ; from = from xs
     ; from∘to = from∘to xs
     ; to∘from = λ { y →
-        extensionality
-          (λ { a → extensionality
-            (λ { a∈xs → to∘from xs y a a∈xs
+        ∀-extensionality
+          (λ { a → ∀-extensionality
+            (λ { a∈xs → to∘from  xs y a a∈xs
             })
           })
       }
@@ -507,4 +507,54 @@ All-∀ { P = P } xs =
         → (xs : List A)
         → (y : (x : A) → x ∈ xs → P x)
         → (a : A) → (a∈xs : a ∈ xs) → (to xs (from xs y)) a a∈xs ≡ (y a a∈xs)
-      to∘from = ?
+      to∘from (x ∷ xs) y a (here a≡x) rewrite a≡x = refl
+      to∘from (x ∷ xs) y a (there a∈xs) =
+        begin
+        to xs (from xs (λ { b b∈ → y b (there b∈) })) a a∈xs
+        ≡⟨ (to∘from xs (λ { b b∈xs → y b (there b∈xs) }) a a∈xs) ⟩
+        y a (there a∈xs)
+        ∎
+
+Any-∃
+  : ∀ {A : Set} {P : A → Set}
+  → (xs : List A)
+  → Any P xs ≃ ∃[ x ] (x ∈ xs × P x)
+Any-∃ xs =
+  record
+    { to = to xs
+    ; from = from xs
+    ; from∘to = from∘to xs
+    ; to∘from = to∘from xs
+    }
+  where
+    to : ∀ {A : Set} {P : A → Set} (xs : List A) →
+      Any P xs → ∃-syntax (λ x → x ∈ xs × P x)
+    to (x ∷ xs) (here Px) = ⟨ x , ⟨ here refl , Px ⟩ ⟩
+    to (x ∷ xs) (there anyP) with to xs anyP
+    ... | ⟨ x , ⟨ ∈xs , Px ⟩ ⟩ = ⟨ x , ⟨ there ∈xs , Px ⟩ ⟩
+
+    from : ∀ {A : Set} {P : A → Set} (xs : List A) →
+      ∃-syntax (λ x → x ∈ xs × P x) → Any P xs
+    from (x ∷ xs) ⟨ a , ⟨ here a≡x , Px ⟩ ⟩ rewrite a≡x = here Px
+    from (x ∷ xs) ⟨ a , ⟨ there a∈xs , Pa ⟩ ⟩ =
+      there (from xs ⟨ a , ⟨ a∈xs , Pa ⟩ ⟩)
+
+    from∘to : ∀ {A : Set} {P : A → Set} (xs : List A) →
+      (x : Any P xs) → from xs (to xs x) ≡ x
+    from∘to (x ∷ xs) (here Px) = refl
+    from∘to (x ∷ xs) (there anyP) =
+      begin
+      there (from xs ⟨ Data.Product.proj₁ (to xs anyP) , ⟨ Data.Product.proj₁ (Data.Product.proj₂ (to xs anyP)) , Data.Product.proj₂ (Data.Product.proj₂ (to xs anyP)) ⟩ ⟩)
+      ≡⟨ cong there (from∘to xs anyP) ⟩
+      there anyP
+      ∎
+
+    to∘from : ∀ { A : Set } { P : A → Set } → (xs : List A) → (∃x∈xs×Px : ∃[ x ] (x ∈ xs × P x)) →
+      to xs (from xs ∃x∈xs×Px) ≡ ∃x∈xs×Px
+    to∘from (x ∷ xs) ⟨ .x , ⟨ here refl , Py ⟩ ⟩ = refl
+    to∘from (x ∷ xs) ⟨ y , ⟨ there y∈xs , Py ⟩ ⟩ =
+      begin
+      to (x ∷ xs) (from (x ∷ xs) ⟨ y , ⟨ there y∈xs , Py ⟩ ⟩)
+      ≡⟨ cong (λ { ⟨ y , ⟨ y∈xs , Py ⟩ ⟩ → ⟨ y , ⟨ there y∈xs , Py ⟩ ⟩ }) (to∘from xs ⟨ y , ⟨ y∈xs , Py ⟩ ⟩) ⟩
+      ⟨ y , ⟨ there y∈xs , Py ⟩ ⟩
+      ∎
