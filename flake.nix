@@ -4,8 +4,12 @@
   inputs = {
     nixpkgs.url = github:nixos/nixpkgs/nixpkgs-unstable;
     flake-utils.url = github:numtide/flake-utils;
-    cornelis.url = github:JonathanLorimer/cornelis/provide-working-agda;
-    agda.url = github:agda/agda/2c05d884cdbbaa3ddcde901faea216d2a4859cfc;
+    cornelis.url = github:isovector/cornelis;
+    agda.url = github:agda/agda/8049b1d996e30ce6204bae2cd8043edff4a22625;
+    agda-stdlib-source = {
+      url = github:agda/agda-stdlib/c5f42e1fb86b964dfe2558e103f2f4f662e553b3;
+      flake = false;
+    };
   };
 
   outputs = inputs:
@@ -21,12 +25,7 @@
       agda = pkgs.agda.withPackages (p: [
         (p.standard-library.overrideAttrs (oldAttrs: {
             version = "nightly";
-            src =  pkgs.fetchFromGitHub {
-              repo = "agda-stdlib";
-              owner = "agda";
-              rev = "c5f42e1fb86b964dfe2558e103f2f4f662e553b3";
-              sha256 = "sha256-6WEHN9ZK/fD/FrnbvrSUB3QBPGQIBDJzZgV63sVoLbA=";
-            };
+            src = inputs.agda-stdlib-source;
         }))
       ]);
     in
